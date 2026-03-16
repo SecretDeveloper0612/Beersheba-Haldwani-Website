@@ -4,7 +4,9 @@
   "description": "Root runner for Beersheba Haldwani project",
   "main": "server.js",
   "scripts": {
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "cd school-website && npm install && npm run build && cd ../admin-portal && npm install && npm run build"
   },
   "keywords": [],
   "author": "",
