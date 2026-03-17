@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate-data": "node ../scripts/migrate-from-hygraph.js"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
@@ -15,6 +16,8 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "graphql": "^16.13.1",
+    "graphql-request": "^7.4.0",
     "lucide-react": "^0.577.0",
     "mysql2": "^3.20.0",
     "next": "16.1.6",

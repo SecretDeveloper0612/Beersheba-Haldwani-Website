@@ -6,10 +6,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GalleryAlbum, GalleryImage } from "@/types/database";
+import { MediaSelector } from "@/components/media-selector";
 
 export default function GalleryManagement() {
-  const [albums, setAlbums] = useState<GalleryAlbum[]>([]);
-  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [albums, setAlbums] = useState<any[]>([]);
+  const [images, setImages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAlbumId, setSelectedAlbumId] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,6 +24,7 @@ export default function GalleryManagement() {
 
   const [isAddingAlbum, setIsAddingAlbum] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
   const [newAlbum, setNewAlbum] = useState({ name: "", description: "" });
 
   useEffect(() => {
@@ -212,6 +214,7 @@ export default function GalleryManagement() {
               isUploading={isUploading} 
               isOpen={isUploadingPhoto}
               setIsOpen={setIsUploadingPhoto}
+              setIsMediaSelectorOpen={setIsMediaSelectorOpen}
               onAddAlbum={() => {
                 setIsUploadingPhoto(false);
                 setIsAddingAlbum(true);
@@ -228,6 +231,16 @@ export default function GalleryManagement() {
         newAlbum={newAlbum}
         setNewAlbum={setNewAlbum}
       />
+
+      {isMediaSelectorOpen && (
+        <MediaSelector 
+          onSelect={(url: string) => {
+            setNewImage({ ...newImage, image_url: url });
+          }}
+          onClose={() => setIsMediaSelectorOpen(false)}
+          currentUrl={newImage.image_url}
+        />
+      )}
     </div>
   );
 }
@@ -286,7 +299,7 @@ function AlbumModal({ isOpen, onClose, onSave, newAlbum, setNewAlbum }: any) {
   );
 }
 
-function DialogTriggerWrapper({ albums, onUpload, newImage, setNewImage, isUploading, isOpen, setIsOpen, onAddAlbum }: any) {
+function DialogTriggerWrapper({ albums, onUpload, newImage, setNewImage, isUploading, isOpen, setIsOpen, onAddAlbum, setIsMediaSelectorOpen }: any) {
   return (
     <>
       <button 
@@ -338,14 +351,28 @@ function DialogTriggerWrapper({ albums, onUpload, newImage, setNewImage, isUploa
                   />
                </div>
                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Image URL</label>
+                  <div className="flex justify-between items-center ml-1">
+                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest leading-none">Image URL</label>
+                    <button 
+                      type="button"
+                      onClick={() => setIsMediaSelectorOpen(true)}
+                      className="text-[10px] font-black uppercase text-indigo-600 hover:text-indigo-800 font-bold"
+                    >
+                      Browse Library
+                    </button>
+                  </div>
                   <Input 
                     required
                     value={newImage.image_url} 
                     onChange={(e) => setNewImage({...newImage, image_url: e.target.value})}
-                    placeholder="https://images.unsplash.com/..."
+                    placeholder="Paste URL or browse..."
                     className="h-11 border-gray-100 rounded-xl" 
                   />
+                  {newImage.image_url && (
+                    <div className="w-full aspect-video rounded-xl overflow-hidden mt-2 border border-gray-100">
+                      <img src={newImage.image_url} className="w-full h-full object-cover" />
+                    </div>
+                  )}
                </div>
                <Button 
                  type="submit" 

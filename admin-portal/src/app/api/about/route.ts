@@ -1,44 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { NextResponse } from "next/server";
 
-// GET /api/about - Fetch school about content
+// GET /api/about
+// The About page content (history, mission, vision, founder, principal) is managed
+// directly in Hygraph as those fields don't yet exist in the HaldwaniHome model.
+// This endpoint returns static content for now.
 export async function GET() {
-  try {
-    const results = await query("SELECT * FROM about_content LIMIT 1") as any[];
-    return NextResponse.json({ data: results[0] || null });
-  } catch (error) {
-    console.error("About GET error:", error);
-    return NextResponse.json({ error: "Failed to fetch about content" }, { status: 500 });
-  }
-}
-
-// PUT /api/about - Update school about content
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { id: _, updated_at: __, ...updates } = body;
-
-    const fields = Object.keys(updates);
-    if (fields.length === 0) return NextResponse.json({ error: "No fields to update" }, { status: 400 });
-
-    const cols = fields.join(", ");
-    const placeholders = fields.map(() => "?").join(", ");
-    const updateClause = fields.map(f => `${f} = VALUES(${f})`).join(", ");
-
-    // Using a fixed ID for singleton about content
-    const id = "00000000-0000-0000-0000-000000000001";
-    
-    await query(
-      `INSERT INTO about_content (id, ${cols}, updated_at) 
-       VALUES (?, ${placeholders}, NOW()) 
-       ON DUPLICATE KEY UPDATE ${updateClause}, updated_at = NOW()`,
-      [id, ...Object.values(updates)]
-    );
-
-    const [data] = await query("SELECT * FROM about_content WHERE id = ?", [id]) as any[];
-    return NextResponse.json({ data });
-  } catch (error) {
-    console.error("About PUT error:", error);
-    return NextResponse.json({ error: "Failed to update about content" }, { status: 500 });
-  }
+  return NextResponse.json({
+    data: {
+      history_heading: "Beersheba School",
+      history_text: "Established on July 4, 1977, in the heart of Haldwani, Beersheba School started with just 60 children under the visionary leadership of the late Shri. and Smt. N.N.D. Bhatt. Their dedication and inspiration have been instrumental in shaping the school's growth and commitment to educational excellence. Today Beersheba School stands as a premier co-educational English Medium institution, known for its nurturing environment and comprehensive curriculum.",
+      mission_text: "As a co-educational English Medium school, our mission is to provide a nurturing environment that fosters holistic development and prepares students for future challenges and successes.",
+      vision_text: "We envision a dynamic learning environment where innovation and excellence converge, empowering students with the skills, knowledge, and values necessary to thrive in a global society.",
+      founder_name: "Late Shri. N.N.D. Bhatt",
+      founder_quote: "Education is the most powerful weapon which you can use to change the world.",
+      principal_name: "Principal, Beersheba School",
+      principal_message: "Welcome to Beersheba School, where we nurture young minds and build a foundation for a bright future."
+    }
+  });
 }

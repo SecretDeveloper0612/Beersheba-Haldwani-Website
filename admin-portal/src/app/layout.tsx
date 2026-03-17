@@ -8,6 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("http://localhost:3001"),
   title: "Admin Portal | Beersheba School Haldwani",
   description: "Secure admin panel for managing Beersheba Sr Sec School website content.",
 };

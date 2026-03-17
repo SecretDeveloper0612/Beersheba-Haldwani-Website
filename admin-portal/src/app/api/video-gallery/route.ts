@@ -1,35 +1,75 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
-import { v4 as uuidv4 } from "uuid";
+import { HygraphService } from "@/lib/hygraph-service";
+import { hygraphAdmin } from "@/lib/hygraph";
+import { gql } from "graphql-request";
 
-// GET /api/video-gallery - Fetch all videos
+// GET /api/video-gallery
 export async function GET() {
   try {
-    const data = await query("SELECT * FROM video_gallery ORDER BY sort_order ASC");
-    return NextResponse.json({ data: data ?? [] });
+    const data: any = await HygraphService.getVideoGalleries();
+    
+    // Transform to match UI expectations: video_url (snake_case)
+    // Also, haldwaniVideo.url is often an array in this specific Hygraph schema
+    const mapped: any[] = [];
+    
+    (data.haldwaniVideoGalleries ?? []).forEach((item: any) => {
+      const urls = Array.isArray(item.haldwaniVideo?.url) 
+        ? item.haldwaniVideo.url 
+        : item.haldwaniVideo?.url 
+          ? [item.haldwaniVideo.url] 
+          : [];
+
+      urls.forEach((url: string, index: number) => {
+        mapped.push({
+          id: `${item.id}-${index}`, // Unique ID for each video in the list
+          title: item.title || `Video ${index + 1}`,
+          video_url: url,
+          source: url.includes("youtube") || url.includes("youtu.be") ? "YouTube" : "Other",
+          thumbnail: "", // Will be auto-fetched by component or we can add logic
+          description: "",
+          created_at: item.createdAt || new Date().toISOString()
+        });
+      });
+    });
+
+    return NextResponse.json({ data: mapped });
   } catch (error) {
     console.error("Video Gallery GET error:", error);
     return NextResponse.json({ error: "Failed to fetch videos" }, { status: 500 });
   }
 }
 
-// POST /api/video-gallery - Add a new video
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, video_url, source, duration, description, is_active, sort_order } = body;
+    const { title, videoUrl, description, thumbnailImageId } = body;
 
-    const id = uuidv4();
-    await query(
-      `INSERT INTO video_gallery (id, title, video_url, source, duration, description, is_active, sort_order) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, title, video_url, source ?? "YouTube", duration, description, is_active ?? true, sort_order ?? 0]
-    );
+    const mutation = gql`
+      mutation CreateVideoGallery($data: VideoGalleryCreateInput!) {
+        createVideoGallery(data: $data) {
+          id
+        }
+      }
+    `;
 
-    const [video] = (await query("SELECT * FROM video_gallery WHERE id = ?", [id])) as any[];
-    return NextResponse.json({ data: video });
+    const variables = {
+      data: {
+        title,
+        videoUrl,
+        description,
+        ...(thumbnailImageId ? { thumbnailImage: { connect: { id: thumbnailImageId } } } : {})
+      }
+    };
+
+    const res: any = await hygraphAdmin.request(mutation, variables);
+    const newId = res.createVideoGallery.id;
+
+    // Publish
+    await HygraphService.publishModel("VideoGallery", newId);
+
+    return NextResponse.json({ data: { id: newId, title } });
   } catch (error) {
     console.error("Video Gallery POST error:", error);
-    return NextResponse.json({ error: "Failed to add video" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create video" }, { status: 500 });
   }
 }

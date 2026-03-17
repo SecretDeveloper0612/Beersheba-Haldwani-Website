@@ -7,15 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { NewsEvent } from "@/types/database";
+import { MediaSelector } from "@/components/media-selector";
 
 export default function NewsEventsManagement() {
-  const [items, setItems] = useState<NewsEvent[]>([]);
+  const [items, setItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<Partial<NewsEvent> | null>(null);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
 
   useEffect(() => {
     fetchNews();
@@ -71,20 +73,20 @@ export default function NewsEventsManagement() {
     }
   };
 
-  const openEditor = (item: Partial<NewsEvent> | null = null) => {
+  const openEditor = (item: any | null = null) => {
     setEditingItem(item || {
       title: "",
       category: "Announcement",
       status: "draft",
       content: "",
-      event_date: new Date().toISOString().split('T')[0],
-      event_location: "Main Campus"
+      eventDate: new Date().toISOString().split('T')[0],
+      eventLocation: "Main Campus"
     });
     setIsEditorOpen(true);
   };
 
   const filteredItems = items.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "All" || item.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -143,28 +145,32 @@ export default function NewsEventsManagement() {
                   <div className="text-center p-12 bg-white rounded-2xl border border-gray-100 italic text-gray-400">
                     No items found matching your filters.
                   </div>
-               ) : filteredItems.map((item) => (
+               ) : filteredItems.map((item: any) => (
                   <div key={item.id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all group">
                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-start gap-4">
-                           <div className="bg-indigo-50 p-3 rounded-2xl text-indigo-600 hidden md:block">
-                              <CalendarIcon size={24} strokeWidth={2.5} />
+                           <div className="bg-indigo-50 p-3 rounded-2xl text-indigo-600 hidden md:block overflow-hidden relative w-12 h-12">
+                              {item.featuredImage?.url ? (
+                                <img src={item.featuredImage.url} className="w-full h-full object-cover" />
+                              ) : (
+                                <CalendarIcon size={24} strokeWidth={2.5} />
+                              )}
                            </div>
                            <div>
                               <div className="flex items-center gap-2 mb-1">
                                  <span className="bg-gray-100 text-gray-500 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">{item.category}</span>
                                  <span className={cn(
                                     "text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider",
-                                    item.status === "published" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                                    item.status === "PUBLISHED" || item.status === "published" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
                                  )}>{item.status}</span>
                               </div>
                               <h3 className="text-lg font-bold text-[#3B2565] transition-colors">{item.title}</h3>
                               <div className="flex items-center gap-4 mt-1">
                                  <p className="text-xs text-gray-400 flex items-center gap-1 font-bold">
-                                    <Clock size={12} /> {item.event_date || item.created_at.split('T')[0]}
+                                    <Clock size={12} /> {item.eventDate || (item.createdAt ? item.createdAt.split('T')[0] : "No date")}
                                  </p>
                                  <p className="text-xs text-gray-400 flex items-center gap-1 font-bold">
-                                    <MapPin size={12} /> {item.event_location || "Main Campus"}
+                                    <MapPin size={12} /> {item.eventLocation || "Main Campus"}
                                  </p>
                               </div>
                            </div>
@@ -279,16 +285,16 @@ export default function NewsEventsManagement() {
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Event Date</label>
                   <Input 
                     type="date"
-                    value={editingItem?.event_date || ""} 
-                    onChange={(e) => setEditingItem({...editingItem!, event_date: e.target.value})}
+                    value={editingItem?.eventDate || ""} 
+                    onChange={(e) => setEditingItem({...editingItem!, eventDate: e.target.value})}
                     className="h-11 border-gray-200" 
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Location</label>
                   <Input 
-                    value={editingItem?.event_location || ""} 
-                    onChange={(e) => setEditingItem({...editingItem!, event_location: e.target.value})}
+                    value={editingItem?.eventLocation || ""} 
+                    onChange={(e) => setEditingItem({...editingItem!, eventLocation: e.target.value})}
                     placeholder="e.g. Auditorium"
                     className="h-11 border-gray-200" 
                   />
@@ -296,23 +302,53 @@ export default function NewsEventsManagement() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Featured Image URL</label>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <Input 
-                      value={editingItem?.featured_image || ""}
-                      onChange={(e) => setEditingItem({...editingItem!, featured_image: e.target.value})}
-                      placeholder="https://images.unsplash.com/..."
-                      className="h-11 border-gray-200"
-                    />
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Featured Image</label>
+                <div className="flex flex-col gap-4">
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <Input 
+                        value={editingItem?.featuredImage?.url || editingItem?.featuredImageUrl || ""}
+                        onChange={(e) => setEditingItem({...editingItem!, featuredImageUrl: e.target.value})}
+                        placeholder="Paste URL or select from library..."
+                        className="h-11 border-gray-200"
+                      />
+                    </div>
+                    <Button 
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsMediaSelectorOpen(true)}
+                      className="h-11 border-dashed border-gray-300 hover:border-[#3B2565] transition-all font-bold px-6 flex gap-2"
+                    >
+                      <Image size={18} />
+                      Choose from Library
+                    </Button>
                   </div>
-                  {editingItem?.featured_image && (
-                    <div className="w-11 h-11 rounded-lg overflow-hidden border border-gray-200">
-                      <img src={editingItem.featured_image} className="w-full h-full object-cover" />
+                  
+                  {(editingItem?.featuredImage?.url || editingItem?.featuredImageUrl) && (
+                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-4 border-gray-50 shadow-inner group">
+                      <img src={editingItem.featuredImage?.url || editingItem.featuredImageUrl} className="w-full h-full object-cover" />
+                      <button 
+                        type="button"
+                        onClick={() => setEditingItem({...editingItem!, featuredImageUrl: "", featuredImage: null})}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={16} />
+                      </button>
                     </div>
                   )}
                 </div>
               </div>
+
+      {/* Media Selector Overlay */}
+      {isMediaSelectorOpen && (
+        <MediaSelector 
+          onSelect={(url: string) => {
+            setEditingItem({...editingItem!, featuredImageUrl: url, featuredImage: { url }});
+          }}
+          onClose={() => setIsMediaSelectorOpen(false)}
+          currentUrl={editingItem?.featuredImage?.url || editingItem?.featuredImageUrl}
+        />
+      )}
 
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Excerpt (Short Summary)</label>

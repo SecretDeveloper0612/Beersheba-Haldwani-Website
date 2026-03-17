@@ -9,9 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { AcademicProgram } from "@/types/database";
 
 export default function AcademicsManagement() {
-  const [programs, setPrograms] = useState<AcademicProgram[]>([]);
+  const [programs, setPrograms] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedProgram, setSelectedProgram] = useState<AcademicProgram | null>(null);
+  const [selectedProgram, setSelectedProgram] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -19,11 +19,12 @@ export default function AcademicsManagement() {
   }, []);
 
   const fetchPrograms = async () => {
+    setIsLoading(true);
     try {
       const res = await fetch("/api/academics");
       const { data } = await res.json();
       setPrograms(data || []);
-      if (data?.length > 0) setSelectedProgram(data[0]);
+      if (data?.length > 0 && !selectedProgram) setSelectedProgram(data[0]);
     } catch (error) {
       console.error("Error fetching programs:", error);
     } finally {
@@ -36,8 +37,11 @@ export default function AcademicsManagement() {
     if (!selectedProgram) return;
     setIsSaving(true);
     try {
-      const res = await fetch(`/api/academics/${selectedProgram.id}`, {
-        method: "PUT",
+      const url = selectedProgram.id ? `/api/academics/${selectedProgram.id}` : "/api/academics";
+      const method = selectedProgram.id ? "PUT" : "POST";
+      
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(selectedProgram),
       });
@@ -51,26 +55,6 @@ export default function AcademicsManagement() {
     }
   };
 
-  const addHighlight = () => {
-    if (!selectedProgram) return;
-    setSelectedProgram({
-      ...selectedProgram,
-      highlights: [...(selectedProgram.highlights || []), ""]
-    });
-  };
-
-  const updateHighlight = (index: number, value: string) => {
-    if (!selectedProgram) return;
-    const newHighlights = [...selectedProgram.highlights];
-    newHighlights[index] = value;
-    setSelectedProgram({ ...selectedProgram, highlights: newHighlights });
-  };
-
-  const removeHighlight = (index: number) => {
-    if (!selectedProgram) return;
-    const newHighlights = selectedProgram.highlights.filter((_, i) => i !== index);
-    setSelectedProgram({ ...selectedProgram, highlights: newHighlights });
-  };
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -78,7 +62,10 @@ export default function AcademicsManagement() {
           <h2 className="text-3xl font-extrabold text-[#3B2565]">Academic Programs</h2>
           <p className="text-gray-500 mt-1 font-medium">Manage curriculum details and academic levels for the website.</p>
         </div>
-        <Button className="bg-[#3B2565] hover:bg-[#2A1a4a] text-white flex gap-2 shadow-lg h-11 px-8">
+        <Button 
+          onClick={() => setSelectedProgram({ programName: "", description: "", category: "Primary", id: "" } as any)}
+          className="bg-[#3B2565] hover:bg-[#2A1a4a] text-white flex gap-2 shadow-lg h-11 px-8"
+        >
           <Plus size={18} />
           Add Program Level
         </Button>
@@ -92,7 +79,11 @@ export default function AcademicsManagement() {
                   <Loader2 className="h-8 w-8 text-[#3B2565] animate-spin mb-4" />
                   <p className="text-gray-500 font-medium">Loading programs...</p>
                </div>
-            ) : programs.map((level) => (
+            ) : programs.length === 0 ? (
+                <div className="col-span-full text-center p-12 bg-white rounded-2xl border border-gray-100 italic text-gray-400">
+                    No programs found. Create your first academic level.
+                </div>
+            ) : programs.map((level: any) => (
                <Card 
                   key={level.id} 
                   onClick={() => setSelectedProgram(level)}
@@ -104,21 +95,16 @@ export default function AcademicsManagement() {
                   <CardHeader className="p-6">
                      <div className="flex justify-between items-start mb-4">
                         <div className={cn(
-                           "p-3 rounded-2xl", 
-                           level.color_theme === "pink" ? "bg-pink-50 text-pink-700" :
-                           level.color_theme === "blue" ? "bg-blue-50 text-blue-700" :
-                           level.color_theme === "green" ? "bg-green-50 text-green-700" :
-                           "bg-purple-50 text-purple-700"
+                           "p-3 rounded-2xl bg-purple-50 text-purple-700"
                         )}>
                            <BookOpen size={24} />
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Order: {level.sort_order}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">{level.category}</span>
                      </div>
-                     <CardTitle className="text-xl text-[#3B2565] font-black">{level.title}</CardTitle>
-                     <p className="text-xs text-gray-400 font-bold mt-1">Target Age: {level.age_range}</p>
+                     <CardTitle className="text-xl text-[#3B2565] font-black">{level.programName}</CardTitle>
                   </CardHeader>
                   <CardContent className="px-6 pb-6 pt-0 space-y-4">
-                     <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">{level.description}</p>
+                     <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">{level.description}</p>
                      <div className="flex pt-4 border-t border-gray-50 items-center justify-between">
                         <div className="flex gap-2">
                            <button className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><Edit2 size={16} /></button>
@@ -140,7 +126,7 @@ export default function AcademicsManagement() {
                         <div className="bg-[#3B2565] p-3 rounded-2xl text-white shadow-lg"><GraduationCap size={24} /></div>
                         <div>
                            <CardTitle className="text-xl text-[#3B2565] font-black uppercase tracking-tight">Program Details</CardTitle>
-                           <CardDescription>Edit content for {selectedProgram.title}</CardDescription>
+                           <CardDescription>{selectedProgram.id ? `Edit ${selectedProgram.programName}` : "Create New Program"}</CardDescription>
                         </div>
                      </div>
                   </CardHeader>
@@ -148,49 +134,47 @@ export default function AcademicsManagement() {
                      <CardContent className="p-8 space-y-6">
                         <div className="grid grid-cols-2 gap-4">
                            <div className="space-y-2">
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Title</label>
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Program Name</label>
                               <Input 
-                                 value={selectedProgram.title} 
-                                 onChange={(e) => setSelectedProgram({...selectedProgram, title: e.target.value})}
+                                 value={selectedProgram.programName || ""} 
+                                 onChange={(e) => setSelectedProgram({...selectedProgram, programName: e.target.value})}
                                  className="h-11 font-bold" 
+                                 placeholder="e.g. Senior Secondary"
                               />
                            </div>
                            <div className="space-y-2">
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Age Range</label>
-                              <Input 
-                                 value={selectedProgram.age_range || ""} 
-                                 onChange={(e) => setSelectedProgram({...selectedProgram, age_range: e.target.value})}
-                                 className="h-11 font-medium" 
-                              />
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Category</label>
+                              <select 
+                                 value={selectedProgram.category || "Primary"}
+                                 onChange={(e) => setSelectedProgram({...selectedProgram, category: e.target.value})}
+                                 className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm font-bold text-gray-600 outline-none"
+                              >
+                                 <option value="Pre-Primary">Pre-Primary</option>
+                                 <option value="Primary">Primary</option>
+                                 <option value="Middle">Middle</option>
+                                 <option value="Secondary">Secondary</option>
+                                 <option value="Senior Secondary">Senior Secondary</option>
+                              </select>
                            </div>
                         </div>
 
                         <div className="space-y-2">
-                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Intro Description</label>
+                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
                            <textarea 
-                              className="w-full h-24 bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm text-gray-600 leading-relaxed outline-none focus:bg-white transition-all shadow-inner"
+                              className="w-full h-40 bg-gray-50 border border-gray-100 rounded-2xl p-4 text-sm text-gray-600 leading-relaxed outline-none focus:bg-white transition-all shadow-inner"
                               value={selectedProgram.description || ""}
                               onChange={(e) => setSelectedProgram({...selectedProgram, description: e.target.value})}
+                              placeholder="Describe the curriculum and learning objectives..."
                            />
                         </div>
 
                         <div className="space-y-2">
-                           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Key Highlights (Points)</label>
-                           <div className="space-y-2">
-                              {selectedProgram.highlights?.map((highlight, idx) => (
-                                 <div key={idx} className="flex gap-2">
-                                    <Input 
-                                       value={highlight} 
-                                       onChange={(e) => updateHighlight(idx, e.target.value)}
-                                       className="h-10 text-xs font-medium bg-gray-50/50 border-gray-100" 
-                                    />
-                                    <Button type="button" variant="ghost" size="icon" onClick={() => removeHighlight(idx)} className="text-gray-300 hover:text-red-500 shrink-0"><Trash2 size={16} /></Button>
-                                 </div>
-                              ))}
-                              <Button type="button" variant="outline" onClick={addHighlight} size="sm" className="w-full border-dashed border-2 py-6 text-gray-400 hover:text-[#3B2565]">
-                                 <Plus size={16} className="mr-2" /> Add Level Highlight
-                              </Button>
-                           </div>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Program Image URL</label>
+                            <Input 
+                                value={selectedProgram.imageUrl || (selectedProgram as any).image?.url || ""}
+                                onChange={(e) => setSelectedProgram({...selectedProgram, imageUrl: e.target.value} as any)}
+                                placeholder="https://images.unsplash.com/..."
+                            />
                         </div>
 
                         <div className="pt-4 flex gap-3">
@@ -200,7 +184,7 @@ export default function AcademicsManagement() {
                               className="flex-1 bg-[#3B2565] hover:bg-[#2A1a4a] text-white font-black uppercase tracking-widest h-12 shadow-xl shadow-[#3B2565]/20"
                            >
                               {isSaving ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Save className="mr-2" size={18} />}
-                              Update Level
+                              {selectedProgram.id ? "Update Program" : "Create Program"}
                            </Button>
                         </div>
                      </CardContent>

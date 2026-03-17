@@ -110,6 +110,15 @@ export default function VideoGalleryManagement() {
                       )}
                    >
                       <div className="aspect-video bg-gray-900 relative flex items-center justify-center group-hover:bg-black transition-colors">
+                         {video.video_url && video.source === "YouTube" ? (
+                           <img 
+                            src={`https://img.youtube.com/vi/${(video.video_url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/) || [])[1]}/maxresdefault.jpg`} 
+                            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                            onError={(e) => (e.currentTarget.src = video.thumbnail_url || "")}
+                           />
+                         ) : video.thumbnail_url ? (
+                           <img src={video.thumbnail_url} className="absolute inset-0 w-full h-full object-cover opacity-60" />
+                         ) : null}
                          <div className="absolute inset-0 opacity-40 bg-gradient-to-t from-black to-transparent" />
                          <div className="z-10 bg-white/20 backdrop-blur-md p-4 rounded-full text-white transform group-hover:scale-110 transition-transform cursor-pointer shadow-2xl border border-white/20">
                             <Play size={32} fill="white" />

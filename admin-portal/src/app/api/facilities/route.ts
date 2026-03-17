@@ -1,39 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
-import { v4 as uuidv4 } from "uuid";
+import { NextResponse } from "next/server";
 
-// GET /api/facilities - Fetch all facilities
+// NOTE: The 'facilities' model does not exist in the current Hygraph schema.
+// Returning static facilities data until the model is created in Hygraph.
+
+const STATIC_FACILITIES = [
+  {
+    id: "library",
+    title: "Library & Resource Centre",
+    description: "Our well-stocked library houses thousands of books, periodicals, and digital resources to encourage reading habits and independent research.",
+    image: { url: "/assets/image/beershiba-2.jpeg" },
+  },
+  {
+    id: "labs",
+    title: "Science Laboratories",
+    description: "State-of-the-art science labs with modern instruments for Physics, Chemistry, and Biology experiments.",
+    image: { url: "/assets/image/beershiba-6.jpeg" },
+  },
+  {
+    id: "sports",
+    title: "Sports & Games",
+    description: "Extensive sports facilities including a large playground, court sports, and indoor games to build teamwork and leadership.",
+    image: { url: "/assets/image/aboutImage.jpg" },
+  },
+  {
+    id: "computer",
+    title: "Computer Lab",
+    description: "A modern computer laboratory with high-speed internet for programming, digital literacy, AI, and Coding courses.",
+    image: { url: "/assets/image/beershiba-2.jpeg" },
+  },
+];
+
 export async function GET() {
-  try {
-    const data = await query("SELECT * FROM facilities ORDER BY sort_order") as any[];
-    return NextResponse.json({ data: data ?? [] });
-  } catch (error) {
-    console.error("Facilities GET error:", error);
-    return NextResponse.json({ error: "Failed to fetch facilities" }, { status: 500 });
-  }
+  return NextResponse.json({ data: STATIC_FACILITIES });
 }
 
-// POST /api/facilities - Create new facility
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { id: _, created_at: __, updated_at: ___, ...insertData } = body;
-    
-    const id = uuidv4();
-    const fields = Object.keys(insertData);
-    const placeholders = fields.map(() => "?").join(", ");
-    const cols = fields.join(", ");
-    const params = Object.values(insertData);
-
-    await query(
-      `INSERT INTO facilities (id, ${cols}, updated_at) VALUES (?, ${placeholders}, NOW())`,
-      [id, ...params]
-    );
-
-    const [data] = await query("SELECT * FROM facilities WHERE id = ?", [id]) as any[];
-    return NextResponse.json({ data });
-  } catch (error) {
-    console.error("Facilities POST error:", error);
-    return NextResponse.json({ error: "Failed to create facility" }, { status: 500 });
-  }
+// POST is disabled until the Facility model is added in Hygraph
+export async function POST() {
+  return NextResponse.json(
+    { error: "Facility creation is not yet available. Please add a 'Facility' model to your Hygraph schema first." },
+    { status: 501 }
+  );
 }

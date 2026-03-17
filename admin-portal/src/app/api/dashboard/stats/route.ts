@@ -1,33 +1,55 @@
-import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { hygraphAdmin } from "@/lib/hygraph";
+import { gql } from "graphql-request";
 
 // GET /api/dashboard/stats - Aggregate stats for the main dashboard
 export async function GET() {
+  const query = gql`
+    query DashboardStats {
+      newsEventsConnection {
+        aggregate {
+          count
+        }
+      }
+      imageGalleriesConnection {
+        aggregate {
+          count
+        }
+      }
+      haldwaniVideoGalleriesConnection {
+        aggregate {
+          count
+        }
+      }
+      haldwaniBlogsConnection {
+        aggregate {
+          count
+        }
+      }
+      academicProgramsConnection {
+        aggregate {
+          count
+        }
+      }
+      teachersConnection {
+        aggregate {
+          count
+        }
+      }
+    }
+  `;
+
   try {
-    const [
-      galleryRes,
-      videoRes,
-      newsRes,
-      enquiryRes,
-      admissionRes,
-      tcRes
-    ] = (await Promise.all([
-      query("SELECT COUNT(*) as count FROM gallery_images"),
-      query("SELECT COUNT(*) as count FROM video_gallery"),
-      query("SELECT COUNT(*) as count FROM news_events"),
-      query("SELECT COUNT(*) as count FROM contact_enquiries").catch(() => [{ count: 0 }]),
-      query("SELECT COUNT(*) as count FROM admission_enquiries WHERE status = 'new'").catch(() => [{ count: 0 }]),
-      query("SELECT COUNT(*) as count FROM transfer_certificates WHERE is_verified = true").catch(() => [{ count: 0 }]),
-    ])) as any[][];
+    const data: any = await hygraphAdmin.request(query);
 
     return NextResponse.json({
       data: {
-        galleryImages: galleryRes[0]?.count || 0,
-        totalVideos: videoRes[0]?.count || 0,
-        eventsThisMonth: newsRes[0]?.count || 0, 
-        totalEnquiries: enquiryRes[0]?.count || 0,
-        pendingAdmissions: admissionRes[0]?.count || 0,
-        verifiedTCs: tcRes[0]?.count || 0,
+        newsEvents: data.newsEventsConnection?.aggregate?.count || 0,
+        galleryAlbums: data.imageGalleriesConnection?.aggregate?.count || 0,
+        totalVideos: data.haldwaniVideoGalleriesConnection?.aggregate?.count || 0,
+        totalArticles: data.haldwaniBlogsConnection?.aggregate?.count || 0,
+        academicPrograms: data.academicProgramsConnection?.aggregate?.count || 0,
+        totalTeachers: data.teachersConnection?.aggregate?.count || 0,
       }
     });
   } catch (error) {

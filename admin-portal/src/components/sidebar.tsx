@@ -6,37 +6,35 @@ import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
   Home, 
-  Info, 
-  GraduationCap, 
-  Building2, 
-  Image as ImageIcon, 
+  ImageIcon, 
   Video, 
   Newspaper, 
-  UserPlus, 
-  FileCheck, 
-  MessageSquare, 
-  Search, 
+  GraduationCap,
+  Users,
   Settings,
   Library,
-  LogOut
+  LogOut,
+  FileText,
+  Building2,
+  FileCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "Homepage", icon: Home, href: "/dashboard/homepage" },
-  { name: "About Page", icon: Info, href: "/dashboard/about" },
-  { name: "Academics", icon: GraduationCap, href: "/dashboard/academics" },
-  { name: "Facilities", icon: Building2, href: "/dashboard/facilities" },
+  { name: "Dashboard Overview", icon: LayoutDashboard, href: "/dashboard" },
+  { name: "Homepage Content", icon: Home, href: "/dashboard/homepage" },
+  { name: "Hero Slider", icon: ImageIcon, href: "/dashboard/hero-slider" },
+  { name: "About Page", icon: GraduationCap, href: "/dashboard/about" },
+  { name: "News & Events", icon: Newspaper, href: "/dashboard/news" },
+  { name: "Articles & Blogs", icon: FileText, href: "/dashboard/articles" },
   { name: "Photo Gallery", icon: ImageIcon, href: "/dashboard/gallery" },
   { name: "Video Gallery", icon: Video, href: "/dashboard/video-gallery" },
-  { name: "News & Events", icon: Newspaper, href: "/dashboard/news" },
-  { name: "Admissions", icon: UserPlus, href: "/dashboard/admissions" },
-  { name: "TC Management", icon: FileCheck, href: "/dashboard/tc" },
-  { name: "Enquiries", icon: MessageSquare, href: "/dashboard/enquiries" },
+  { name: "Academic Programs", icon: GraduationCap, href: "/dashboard/academics" },
+  { name: "Facilities", icon: Building2, href: "/dashboard/facilities" },
+  { name: "Teachers", icon: Users, href: "/dashboard/teachers" },
   { name: "Media Library", icon: Library, href: "/dashboard/media" },
-  { name: "SEO Settings", icon: Search, href: "/dashboard/seo" },
-  { name: "Settings", icon: Settings, href: "/dashboard/settings" },
+  { name: "TC Certificates", icon: FileCheck, href: "/dashboard/tc" },
+  { name: "Site Settings", icon: Settings, href: "/dashboard/settings" },
 ];
 
 const Sidebar = () => {

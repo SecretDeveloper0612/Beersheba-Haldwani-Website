@@ -1,41 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { HygraphService } from "@/lib/hygraph-service";
 
-// PUT /api/tc/[id] - Update TC record
-export async function PUT(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id } = await params;
     const body = await request.json();
-    const params = await props.params;
-    const { id } = params;
+    const { tc_number, student_name, father_name, class_at_leaving, date_of_leaving, admission_number, is_verified, conduct } = body;
 
-    const { id: _, created_at, updated_at, ...updates } = body;
-    const fields = Object.keys(updates);
-    if (fields.length === 0) return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+    const data: any = {
+      tcNumber: tc_number?.toUpperCase(),
+      studentName: student_name,
+      fatherName: father_name,
+      studentClass: class_at_leaving,
+      issueDate: date_of_leaving,
+      admissionNumber: admission_number,
+      status: is_verified ? "Verified" : "Pending",
+      conductRemark: conduct
+    };
 
-    const setClause = fields.map(f => `${f} = ?`).join(", ");
-    const paramsList = [...Object.values(updates), id];
+    // Remove undefined fields
+    Object.keys(data).forEach(key => data[key] === undefined && delete data[key]);
 
-    await query(
-      `UPDATE transfer_certificates SET ${setClause}, updated_at = NOW() WHERE id = ?`,
-      paramsList
-    );
+    await HygraphService.updateTC(id, data);
+    await HygraphService.publishModel("TransferCertificate", id);
 
-    const [data] = await query("SELECT * FROM transfer_certificates WHERE id = ?", [id]) as any[];
-    return NextResponse.json({ data });
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("TC PUT error:", error);
-    return NextResponse.json({ error: "Failed to update TC" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update TC in Hygraph" }, { status: 500 });
   }
 }
 
-// DELETE /api/tc/[id]
-export async function DELETE(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const params = await props.params;
-    await query("DELETE FROM transfer_certificates WHERE id = ?", [params.id]);
+    const { id } = await params;
+    await HygraphService.deleteTC(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("TC DELETE error:", error);
-    return NextResponse.json({ error: "Failed to delete TC" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete TC from Hygraph" }, { status: 500 });
   }
 }

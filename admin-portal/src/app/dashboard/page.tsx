@@ -25,10 +25,10 @@ const recentActivities = [
 
 export default function DashboardPage() {
   const [stats, setStats] = useState([
-    { name: "Gallery Images", value: "...", icon: ImageIcon, color: "text-blue-600", bg: "bg-blue-100" },
+    { name: "News & Events", value: "...", icon: Calendar, color: "text-orange-600", bg: "bg-orange-100" },
+    { name: "Gallery Albums", value: "...", icon: ImageIcon, color: "text-blue-600", bg: "bg-blue-100" },
     { name: "Total Videos", value: "...", icon: Video, color: "text-purple-600", bg: "bg-purple-100" },
-    { name: "Total News/Events", value: "...", icon: Calendar, color: "text-orange-600", bg: "bg-orange-100" },
-    { name: "Total Enquiries", value: "...", icon: Users, color: "text-green-600", bg: "bg-green-100" },
+    { name: "Total Teachers", value: "...", icon: Users, color: "text-green-600", bg: "bg-green-100" },
   ]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,10 +39,10 @@ export default function DashboardPage() {
         const { data } = await res.json();
         if (data) {
           setStats([
-            { name: "Gallery Images", value: data.galleryImages.toString(), icon: ImageIcon, color: "text-blue-600", bg: "bg-blue-100" },
-            { name: "Total Videos", value: data.totalVideos.toString(), icon: Video, color: "text-purple-600", bg: "bg-purple-100" },
-            { name: "Total News/Events", value: data.eventsThisMonth.toString(), icon: Calendar, color: "text-orange-600", bg: "bg-orange-100" },
-            { name: "Total Enquiries", value: data.pendingAdmissions.toString(), icon: Users, color: "text-green-600", bg: "bg-green-100" },
+            { name: "News & Events", value: (data.newsEvents || 0).toString(), icon: Calendar, color: "text-orange-600", bg: "bg-orange-100" },
+            { name: "Articles & Blogs", value: (data.totalArticles || 0).toString(), icon: FileText, color: "text-green-600", bg: "bg-green-100" },
+            { name: "Gallery Albums", value: (data.galleryAlbums || 0).toString(), icon: ImageIcon, color: "text-blue-600", bg: "bg-blue-100" },
+            { name: "Total Videos", value: (data.totalVideos || 0).toString(), icon: Video, color: "text-purple-600", bg: "bg-purple-100" },
           ]);
         }
       } catch (error) {

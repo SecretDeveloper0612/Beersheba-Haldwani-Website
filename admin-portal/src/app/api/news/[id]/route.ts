@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
+import { hygraphAdmin } from "@/lib/hygraph";
+import { gql } from "graphql-request";
 
 export async function PUT(
   request: NextRequest,
@@ -8,20 +9,46 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { id: _, created_at, updated_at, views, ...updates } = body;
+    const { title, content, excerpt, category, eventDate, status } = body;
 
-    const columns = Object.keys(updates);
-    const values = Object.values(updates);
-    
-    const setClause = columns.map((col) => `${col} = ?`).join(", ");
-    const sql = `UPDATE news_events SET ${setClause} WHERE id = ?`;
-    await query(sql, [...values, id]);
+    const mutation = gql`
+      mutation UpdateNewsEvent($id: ID!, $data: NewsEventUpdateInput!) {
+        updateNewsEvent(where: { id: $id }, data: $data) {
+          id
+        }
+      }
+    `;
 
-    const [post] = (await query("SELECT * FROM news_events WHERE id = ?", [id])) as any[];
-    return NextResponse.json({ data: post });
+    const variables = {
+      id,
+      data: {
+        title,
+        content,
+        excerpt,
+        category,
+        eventDate,
+        status: status === 'published' ? 'PUBLISHED' : 'DRAFT',
+      },
+    };
+
+    await hygraphAdmin.request(mutation, variables);
+
+    // If status is published, publish it
+    if (status === 'published') {
+      const publishMutation = gql`
+        mutation PublishNewsEvent($id: ID!) {
+          publishNewsEvent(where: { id: $id }, to: PUBLISHED) {
+            id
+          }
+        }
+      `;
+      await hygraphAdmin.request(publishMutation, { id });
+    }
+
+    return NextResponse.json({ success: true, id });
   } catch (error) {
     console.error("News PUT error:", error);
-    return NextResponse.json({ error: "Failed to update post" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update post in Hygraph" }, { status: 500 });
   }
 }
 
@@ -31,10 +58,18 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    await query("DELETE FROM news_events WHERE id = ?", [id]);
+    const mutation = gql`
+      mutation DeleteNewsEvent($id: ID!) {
+        deleteNewsEvent(where: { id: $id }) {
+          id
+        }
+      }
+    `;
+
+    await hygraphAdmin.request(mutation, { id });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("News DELETE error:", error);
-    return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete post from Hygraph" }, { status: 500 });
   }
 }

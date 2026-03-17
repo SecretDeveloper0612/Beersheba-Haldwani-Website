@@ -1,35 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query } from "@/lib/db";
-import { v4 as uuidv4 } from "uuid";
+import { HygraphService } from "@/lib/hygraph-service";
 
-// GET /api/gallery/albums - Fetch all albums
 export async function GET() {
   try {
-    const data = await query("SELECT * FROM gallery_albums ORDER BY created_at DESC");
-    return NextResponse.json({ data: data ?? [] });
+    const data: any = await HygraphService.getGalleryAlbums();
+    return NextResponse.json({ data: data.galleryAlbums ?? [] });
   } catch (error) {
     console.error("Gallery Albums GET error:", error);
-    return NextResponse.json({ error: "Failed to fetch albums" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch gallery albums" }, { status: 500 });
   }
 }
 
-// POST /api/gallery/albums - Create a new album
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, cover_image, category } = body;
+    const { title, description, coverImageId } = body;
 
-    const id = uuidv4();
-    await query(
-      `INSERT INTO gallery_albums (id, name, description, cover_image, is_active) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [id, title || body.name, description, cover_image, true]
-    );
+    const data: any = {
+      title,
+      description,
+      ...(coverImageId ? { coverImage: { connect: { id: coverImageId } } } : {})
+    };
 
-    const [album] = (await query("SELECT * FROM gallery_albums WHERE id = ?", [id])) as any[];
-    return NextResponse.json({ data: album });
+    const album: any = await HygraphService.createGalleryAlbum(data);
+    
+    // Automatically publish the album
+    await HygraphService.publishModel("GalleryAlbum", album.createGalleryAlbum.id);
+
+    return NextResponse.json({ data: album.createGalleryAlbum });
   } catch (error) {
-    console.error("Gallery Album POST error:", error);
-    return NextResponse.json({ error: "Failed to create album" }, { status: 500 });
+    console.error("Gallery Albums POST error:", error);
+    return NextResponse.json({ error: "Failed to create gallery album" }, { status: 500 });
   }
 }

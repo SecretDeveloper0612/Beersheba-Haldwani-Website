@@ -31,7 +31,7 @@ export default function MediaLibrary() {
     setIsLoading(true);
     try {
       const typeParam = activeType !== "All" ? `?type=${activeType}` : "";
-      const res = await fetch(`/api/upload${typeParam}`);
+      const res = await fetch(`/api/media${typeParam}`);
       const { data } = await res.json();
       setMedia(data || []);
     } catch (error) {
@@ -48,9 +48,11 @@ export default function MediaLibrary() {
     setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("folder", "general");
 
     try {
+      // Note: This still uses /api/upload for actual upload logic if it exists, 
+      // but we should probably ensure /api/upload also works with Hygraph if that's the goal.
+      // For now, let's keep the fetch but refresh media after.
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -65,8 +67,8 @@ export default function MediaLibrary() {
     }
   };
 
-  const filtered = media.filter((f) => 
-    f.file_name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = media.filter((f: any) => 
+    (f.fileName || f.file_name || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -139,38 +141,46 @@ export default function MediaLibrary() {
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-          {filtered.map((file) => {
-            const Icon = typeIcon[file.file_type] || FileText;
+          {filtered.map((file: any) => {
+            const url = file.url || file.file_url;
+            const fileName = file.fileName || file.file_name;
+            const mimeType = file.mimeType || file.mime_type || "";
+            const isImage = mimeType.startsWith("image/") || (file.file_type === "image");
+            const isVideo = mimeType.startsWith("video/") || (file.file_type === "video");
+            const Icon = isImage ? ImageIcon : isVideo ? Video : FileText;
+            
             return (
               <div key={file.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-xl hover:border-indigo-100 transition-all">
                 <div className={cn(
                   "aspect-square flex items-center justify-center relative",
-                  file.file_type === "image" ? "bg-gray-50" : file.file_type === "video" ? "bg-gray-900" : "bg-indigo-50"
+                  isImage ? "bg-gray-50" : isVideo ? "bg-gray-900" : "bg-indigo-50"
                 )}>
-                   {file.file_type === "image" ? (
-                     <img src={file.file_url} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                   {isImage ? (
+                     <img src={url} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                    ) : (
                     <Icon size={48} className={cn(
                       "opacity-30",
-                      file.file_type === "video" ? "text-white" : "text-indigo-400"
+                      isVideo ? "text-white" : "text-indigo-400"
                     )} strokeWidth={1} />
                    )}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                     <button 
                       onClick={() => {
-                        navigator.clipboard.writeText(file.file_url);
+                        navigator.clipboard.writeText(url);
                         alert("URL copied!");
                       }}
                       className="p-2.5 bg-white/90 rounded-xl text-gray-700 hover:text-indigo-600 transition-colors shadow-sm"
                     ><Copy size={16} /></button>
-                     <a href={file.file_url} target="_blank" className="p-2.5 bg-white/90 rounded-xl text-gray-700 hover:text-blue-600 transition-colors shadow-sm"><Download size={16} /></a>
+                     <a href={url} target="_blank" className="p-2.5 bg-white/90 rounded-xl text-gray-700 hover:text-blue-600 transition-colors shadow-sm"><Download size={16} /></a>
                   </div>
                 </div>
                 <div className="p-3">
-                  <p className="text-xs font-bold text-gray-800 truncate" title={file.file_name}>{file.file_name}</p>
+                  <p className="text-xs font-bold text-gray-800 truncate" title={fileName}>{fileName}</p>
                   <div className="flex items-center justify-between mt-1">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase">{(file.file_size || 0 / 1024 / 1024).toFixed(1)} MB</p>
-                    <p className="text-[10px] text-indigo-500 font-black">{file.used_count || 0}x</p>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase">{((file.size || file.file_size || 0) / 1024 / 1024).toFixed(1)} MB</p>
+                    {file.width && file.height && (
+                      <p className="text-[10px] text-indigo-500 font-black">{file.width}x{file.height}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -183,22 +193,32 @@ export default function MediaLibrary() {
             <span className="col-span-2">File Name</span>
             <span>Type</span>
             <span>Size</span>
-            <span>Used</span>
+            <span>Dimensions / Used</span>
           </div>
-          {filtered.map((file) => {
-            const Icon = typeIcon[file.file_type] || FileText;
+          {filtered.map((file: any) => {
+            const url = file.url || file.file_url;
+            const fileName = file.fileName || file.file_name;
+            const mimeType = file.mimeType || file.mime_type || "";
+            const isImage = mimeType.startsWith("image/") || (file.file_type === "image");
+            const isVideo = mimeType.startsWith("video/") || (file.file_type === "video");
+            const Icon = isImage ? ImageIcon : isVideo ? Video : FileText;
+
             return (
               <div key={file.id} className="grid grid-cols-5 items-center px-6 py-4 border-b border-gray-50 hover:bg-gray-50/50 transition-colors group">
                 <div className="col-span-2 flex items-center gap-3">
                   <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-[#3B2565]/10 transition-colors">
                     <Icon size={16} className="text-gray-500 group-hover:text-[#3B2565] transition-colors" />
                   </div>
-                  <p className="text-sm font-bold text-gray-800 truncate">{file.file_name}</p>
+                  <p className="text-sm font-bold text-gray-800 truncate">{fileName}</p>
                 </div>
-                <span className="text-xs font-bold text-gray-500 capitalize">{file.file_type}</span>
-                <span className="text-xs text-gray-500 font-medium">{((file.file_size || 0) / 1024 / 1024).toFixed(1)} MB</span>
+                <span className="text-xs font-bold text-gray-500 capitalize">{mimeType.split('/')[1] || file.file_type}</span>
+                <span className="text-xs text-gray-500 font-medium">{((file.size || file.file_size || 0) / 1024 / 1024).toFixed(1)} MB</span>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-indigo-500">{file.used_count || 0}x</span>
+                  {file.width ? (
+                    <span className="text-xs font-black text-indigo-500">{file.width}x{file.height}</span>
+                  ) : (
+                    <span className="text-xs font-black text-indigo-500">{file.used_count || 0}x</span>
+                  )}
                 </div>
               </div>
             );
