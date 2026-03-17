@@ -28,7 +28,6 @@ const About = ({
           />
         </div>
       </div>
-// turbo
       <div className="space-y-6 text-center lg:text-left order-1 lg:order-2">
         <div className="space-y-3">
           <span className="inline-block px-4 py-1 bg-[#E74040]/10 text-[#E74040] text-[10px] lg:text-xs font-black uppercase tracking-widest rounded-full">

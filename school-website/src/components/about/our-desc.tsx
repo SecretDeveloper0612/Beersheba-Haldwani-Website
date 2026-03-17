@@ -6,25 +6,8 @@ import { poppins } from "@/utils/font";
 import { server_query_function } from "@/lib/graphql";
 
 const OurDesc = async () => {
-  let homeData: any = null;
-  
-  try {
-    const query = `
-      query GetMissionVision {
-        haldwaniHomes(first: 1) {
-          missionText
-          visionText
-        }
-      }
-    `;
-    const response = await server_query_function(query) as any;
-    homeData = response?.haldwaniHomes?.[0];
-  } catch (error) {
-    console.error("Error fetching mission/vision data:", error);
-  }
-
-  const missionText = homeData?.missionText || "Founded on July 4, 1977, in the heart of Haldwani, Beersheba School started with an initial enrollment of 60 children and was established by the late Shri. and Smt. N.N.D. Bhatt. As a co-educational English Medium school, our mission is to provide a nurturing environment that fosters holistic development and prepares students for future challenges and successes.";
-  const visionText = homeData?.visionText || "At Beersheba School, we envision a dynamic learning environment where innovation and excellence converge. Founded on July 4, 1977, in the heart of Haldwani by the late Shri. and Smt. N.N.D. Bhatt, our vision is to empower students with the skills, knowledge, and values necessary to thrive in a global society.";
+  const missionText = "Founded on July 4, 1977, in the heart of Haldwani, Beersheba School started with an initial enrollment of 60 children and was established by the late Shri. and Smt. N.N.D. Bhatt. As a co-educational English Medium school, our mission is to provide a nurturing environment that fosters holistic development and prepares students for future challenges and successes.";
+  const visionText = "At Beersheba School, we envision a dynamic learning environment where innovation and excellence converge. Founded on July 4, 1977, in the heart of Haldwani by the late Shri. and Smt. N.N.D. Bhatt, our vision is to empower students with the skills, knowledge, and values necessary to thrive in a global society.";
 
   return (
     <section className="container mx-auto py-10 px-5 md:px-20">

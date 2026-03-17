@@ -1,30 +1,36 @@
 import Image from "next/image";
 import React from "react";
 import Heading2 from "../heading2";
-import { server_query_function } from "@/lib/graphql";
 
-const Facilities = async () => {
-  let facilitiesData = [];
-  
-  try {
-    const query = `
-      query GetFacilities {
-        facilities(first: 20) {
-          id
-          title
-          description
-          image {
-            url
-          }
-        }
-      }
-    `;
-    const response = await server_query_function(query) as any;
-    facilitiesData = response?.facilities || [];
-  } catch (error) {
-    console.error("Error fetching facilities:", error);
-  }
+// Static facilities data — add your facility model to Hygraph to make this dynamic
+const FACILITIES = [
+  {
+    id: "library",
+    title: "Library & Resource Centre",
+    description: "Our well-stocked library houses thousands of books, periodicals, and digital resources to encourage reading habits and independent research among students.",
+    image: "/assets/image/beershiba-2.jpeg",
+  },
+  {
+    id: "labs",
+    title: "Science Laboratories",
+    description: "State-of-the-art science labs equipped with modern instruments and apparatus, allowing students to conduct experiments and develop practical skills in Physics, Chemistry, and Biology.",
+    image: "/assets/image/beershiba-6.jpeg",
+  },
+  {
+    id: "sports",
+    title: "Sports & Games",
+    description: "Extensive sports facilities including a large playground, court sports, and indoor games. We encourage students to participate in physical activities to foster teamwork and leadership.",
+    image: "/assets/image/aboutImage.jpg",
+  },
+  {
+    id: "computer",
+    title: "Computer Lab",
+    description: "A modern computer laboratory with high-speed internet provides students with hands-on experience in programming, digital literacy, and emerging technologies like AI and Coding.",
+    image: "/assets/image/beershiba-2.jpeg",
+  },
+];
 
+const Facilities = () => {
   return (
     <section className="py-12 px-5 lg:px-16 bg-slate-50">
       <div className="max-w-7xl mx-auto">
@@ -39,9 +45,9 @@ const Facilities = async () => {
           </p>
         </div>
 
-        {facilitiesData.map((facility: any, index: number) => (
+        {FACILITIES.map((facility, index) => (
           <div
-            key={facility.id || index}
+            key={facility.id}
             className="bg-white rounded-xl shadow-lg overflow-hidden mb-16 transition-transform hover:scale-[1.01]"
           >
             <div
@@ -52,7 +58,7 @@ const Facilities = async () => {
               <div className={`${index % 2 === 0 ? "order-1" : "lg:order-2"}`}>
                 <div className="relative h-[350px] overflow-hidden">
                   <Image
-                    src={facility.image?.url || "/assets/image/placeholder.jpg"}
+                    src={facility.image}
                     alt={facility.title}
                     width={700}
                     height={400}
@@ -75,10 +81,6 @@ const Facilities = async () => {
             </div>
           </div>
         ))}
-
-        {facilitiesData.length === 0 && (
-          <p className="text-center text-gray-500 italic">No facilities information available at the moment.</p>
-        )}
       </div>
     </section>
   );

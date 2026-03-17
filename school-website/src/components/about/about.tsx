@@ -5,25 +5,8 @@ import Image from "next/image";
 import { server_query_function } from "@/lib/graphql";
 
 const About = async () => {
-  let homeData: any = null;
-  
-  try {
-    const query = `
-      query GetAbout {
-        haldwaniHomes(first: 1) {
-          welcomeHeading
-          welcomeDescription
-        }
-      }
-    `;
-    const response = await server_query_function(query) as any;
-    homeData = response?.haldwaniHomes?.[0];
-  } catch (error) {
-    console.error("Error fetching about data:", error);
-  }
-
-  const heading = homeData?.welcomeHeading || "Beersheba School";
-  const description = homeData?.welcomeDescription || `
+  const heading = "Beersheba School";
+  const description = `
     Established on July 4, 1977, in the heart of Haldwani, Beersheba
     School started with just 60 children under the visionary leadership of
     the late Shri. and Smt. N.N.D. Bhatt. Their dedication and inspiration

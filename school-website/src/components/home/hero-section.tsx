@@ -7,6 +7,7 @@ const HeroSection = ({
   video: {
     homeVideoBanner: {
       url: string;
+      mimeType?: string;
       title?: string;
       description?: string;
       buttonText?: string;

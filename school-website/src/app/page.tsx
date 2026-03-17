@@ -1,7 +1,6 @@
 import AdmissionEnquiry from "@/components/admission-enquiry";
 import Branches from "@/components/branches";
 import About from "@/components/home/about";
-import Academics from "@/components/home/academics";
 import Events from "@/components/home/events";
 import Gallery from "@/components/home/gallery";
 import HeroSection from "@/components/home/hero-section";
@@ -11,6 +10,8 @@ import ToppersResult from "@/components/home/toppers-result";
 import Video from "@/components/home/video";
 import Why from "@/components/home/why";
 import { server_query_function } from "@/lib/graphql";
+// AcademicsClient wraps Academics with ssr:false to fix Radix UI hydration mismatch
+import Academics from "@/components/home/academics-client";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -51,22 +52,10 @@ const page = async () => {
         url
       }
     }
-    heroSliders(orderBy: slideOrder_ASC) {
-      id
-      title
-      description
-      slideOrder
-      buttonText
-      buttonLink
-      image {
-        url
-      }
-    }
     haldwaniHomes(first: 1) {
-      welcomeHeading
-      welcomeDescription
       homeVideoBanner {
         url
+        mimeType
       }
       homeGallery {
         ... on Image {
@@ -155,19 +144,11 @@ const page = async () => {
 
     galleryImages = galleryImages.slice(0, 9);
 
-    // Transforming heroSliders for HeroSection if available, fallback to homeVideoBanner
-    let bannerData = heroSliders.length > 0 ? heroSliders.map((s: any) => ({
-      url: s.image?.url,
-      title: s.title,
-      description: s.description,
-      buttonText: s.buttonText,
-      buttonLink: s.buttonLink
-    })) : [];
-
-    if (bannerData.length === 0) {
-       const bannerVideos = homeData?.homeVideoBanner || [{ url: "/assets/videos/video.mp4" }];
-       bannerData = bannerVideos.map((v: any) => ({ url: v.url }));
-    }
+    // fallback to homeVideoBanner from Hygraph (includes mimeType for correct video detection)
+    const bannerVideos = homeData?.homeVideoBanner?.length
+      ? homeData.homeVideoBanner
+      : [{ url: "/assets/videos/video.mp4", mimeType: "video/mp4" }];
+    const bannerData = bannerVideos.map((v: any) => ({ url: v.url, mimeType: v.mimeType }));
 
     const toppersData = {
       allToppers: homeData?.toppers || [],
@@ -182,8 +163,8 @@ const page = async () => {
         <HeroSection video={[{ homeVideoBanner: bannerData }] as any} />
         <Video featured={featuredNews} />
         <About 
-          heading={homeData?.welcomeHeading} 
-          description={homeData?.welcomeDescription} 
+          heading="Beersheba School" 
+          description="Established on July 4, 1977, in the heart of Haldwani, Beersheba School started with just 60 children under the visionary leadership of the late Shri. and Smt. N.N.D. Bhatt. Their dedication and inspiration have been instrumental in shaping the school's growth and commitment to educational excellence. Today Beersheba School stands as a premier co-educational English Medium institution, known for its nurturing environment and comprehensive curriculum." 
         />
         <MissionAndValues />
         <Academics />
