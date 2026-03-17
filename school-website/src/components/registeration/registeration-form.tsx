@@ -33,30 +33,18 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 const formSchema = z.object({
-  classes: z.string({
-    required_error: "Please select the class.",
-  }),
+  classes: z.string().min(1, "Please select the class."),
   name: z.string().min(5).max(20),
   fatherName: z.string().min(5).max(20),
   motherName: z.string().min(5).max(20),
-  gender: z.string({
-    required_error: "Please select the gender.",
-  }),
-  dob: z.date({
-    required_error: "A date of birth is required.",
-  }),
+  gender: z.string().min(1, "Please select the gender."),
+  dob: z.date({ message: "A date of birth is required." }),
   email: z.string().email(),
   phoneNumber: z.string().min(10).max(10),
-  category: z.string({
-    required_error: "Please select the Category.",
-  }),
+  category: z.string().min(1, "Please select the Category."),
   lastSchoolName: z.string().min(5),
-  fatherOccupation: z.string({
-    required_error: "Please select the class.",
-  }),
-  motherOccupation: z.string({
-    required_error: "Please select the class.",
-  }),
+  fatherOccupation: z.string().min(1, "Please select an occupation."),
+  motherOccupation: z.string().min(1, "Please select an occupation."),
   annualIncome: z.string().min(5).max(10),
   referedBy: z.string().min(5).max(20),
 });
@@ -141,9 +129,9 @@ const RegisterationForm = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Nursery</SelectItem>
-                      <SelectItem value="1">LKG</SelectItem>
-                      <SelectItem value="1">UKG</SelectItem>
+                      <SelectItem value="Nursery">Nursery</SelectItem>
+                      <SelectItem value="LKG">LKG</SelectItem>
+                      <SelectItem value="UKG">UKG</SelectItem>
                       <SelectItem value="1">1</SelectItem>
                       <SelectItem value="2">2</SelectItem>
                       <SelectItem value="3">3</SelectItem>

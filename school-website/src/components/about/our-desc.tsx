@@ -3,8 +3,29 @@ import Heading3 from "../heading3";
 import IconCard from "./icon-card";
 import { Eye, Goal } from "lucide-react";
 import { poppins } from "@/utils/font";
+import { server_query_function } from "@/lib/graphql";
 
-const OurDesc = () => {
+const OurDesc = async () => {
+  let homeData: any = null;
+  
+  try {
+    const query = `
+      query GetMissionVision {
+        haldwaniHomes(first: 1) {
+          missionText
+          visionText
+        }
+      }
+    `;
+    const response = await server_query_function(query) as any;
+    homeData = response?.haldwaniHomes?.[0];
+  } catch (error) {
+    console.error("Error fetching mission/vision data:", error);
+  }
+
+  const missionText = homeData?.missionText || "Founded on July 4, 1977, in the heart of Haldwani, Beersheba School started with an initial enrollment of 60 children and was established by the late Shri. and Smt. N.N.D. Bhatt. As a co-educational English Medium school, our mission is to provide a nurturing environment that fosters holistic development and prepares students for future challenges and successes.";
+  const visionText = homeData?.visionText || "At Beersheba School, we envision a dynamic learning environment where innovation and excellence converge. Founded on July 4, 1977, in the heart of Haldwani by the late Shri. and Smt. N.N.D. Bhatt, our vision is to empower students with the skills, knowledge, and values necessary to thrive in a global society.";
+
   return (
     <section className="container mx-auto py-10 px-5 md:px-20">
       <Heading3 title="Milestones of Excellence" />
@@ -76,14 +97,10 @@ const OurDesc = () => {
               Our Mission
             </h5>
           </div>
-          <p className="py-3 text-gray-600">
-            Founded on July 4, 1977, in the heart of Haldwani, Beersheba School
-            started with an initial enrollment of 60 children and was
-            established by the late Shri. and Smt. N.N.D. Bhatt. As a
-            co-educational English Medium school, our mission is to provide a
-            nurturing environment that fosters holistic development and prepares
-            students for future challenges and successes.
-          </p>
+          <div 
+            className="py-3 text-gray-600"
+            dangerouslySetInnerHTML={{ __html: missionText }}
+          />
         </div>
         <div className="">
           <div className="flex gap-5 items-center">
@@ -94,16 +111,10 @@ const OurDesc = () => {
               Our Vision
             </h5>
           </div>
-          <p className="py-3 text-gray-600">
-            At Beersheba School, we envision a dynamic learning environment
-            where innovation and excellence converge. Founded on July 4, 1977,
-            in the heart of Haldwani by the late Shri. and Smt. N.N.D. Bhatt,
-            our vision is to empower students with the skills, knowledge, and
-            values necessary to thrive in a global society. We are committed to
-            cultivating leadership, critical thinking, and lifelong learning
-            habits that prepare our students to contribute positively to the
-            world.
-          </p>
+          <div 
+            className="py-3 text-gray-600"
+            dangerouslySetInnerHTML={{ __html: visionText }}
+          />
         </div>
       </div>
     </section>

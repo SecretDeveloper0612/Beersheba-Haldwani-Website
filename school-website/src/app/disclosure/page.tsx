@@ -42,8 +42,7 @@ const DisclosureRow = ({ disclosure }: { disclosure: DisclosureItem }) => (
 const page = async () => {
   try {
     const response = await server_query_function(DISCLOSURE_QUERY);
-    //@ts-expect-error
-    const disclosure = response?.disclosurePages?.[0]
+    const disclosure = (response as any)?.disclosurePages?.[0]
       ?.haldwaniDisclosure as DisclosureItem[];
 
     if (!disclosure?.length) {

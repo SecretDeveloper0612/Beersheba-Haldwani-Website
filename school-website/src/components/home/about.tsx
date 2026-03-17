@@ -5,7 +5,13 @@ import { poppins } from "@/utils/font";
 import { Button } from "../ui/button";
 import Link from "next/link";
 
-const About = () => {
+const About = ({ 
+  heading = "Beersheba School", 
+  description = "Beersheba School, located in Haldwani, was established on July 4, 1977, in the heart of the city." 
+}: { 
+  heading?: string, 
+  description?: string 
+}) => {
   return (
     <section className="container mx-auto px-4 py-12 lg:py-24 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20 items-center">
       <div className="relative flex justify-center lg:justify-start order-2 lg:order-1">
@@ -22,22 +28,19 @@ const About = () => {
           />
         </div>
       </div>
-
+// turbo
       <div className="space-y-6 text-center lg:text-left order-1 lg:order-2">
         <div className="space-y-3">
           <span className="inline-block px-4 py-1 bg-[#E74040]/10 text-[#E74040] text-[10px] lg:text-xs font-black uppercase tracking-widest rounded-full">
             Founded 1977
           </span>
-          <Heading2 title="Beersheba School" className="text-3xl sm:text-4xl lg:text-5xl" />
+          <Heading2 title={heading} className="text-3xl sm:text-4xl lg:text-5xl" />
         </div>
 
-        <p className="text-gray-600 text-base lg:text-lg leading-relaxed font-medium">
-          Beersheba School, located in Haldwani, was established on <span className="text-[#3B2565] font-bold">July 4, 1977</span>, in the heart of the city. What started with an initial enrollment of only 60 children has blossomed into a beacon of excellence.
-        </p>
-
-        <p className="text-gray-500 text-sm lg:text-base leading-relaxed">
-          Founded by the late Shri. and Smt. N.N.D. Bhatt, the school&apos;s journey is a testament to unwavering dedication. The inspiring vision of our founders continues to empower generations today.
-        </p>
+        <div 
+          className="text-gray-600 text-base lg:text-lg leading-relaxed font-medium"
+          dangerouslySetInnerHTML={{ __html: description }}
+        />
 
         <div className="pt-2 flex justify-center lg:justify-start">
           <Link href={"/about"}>

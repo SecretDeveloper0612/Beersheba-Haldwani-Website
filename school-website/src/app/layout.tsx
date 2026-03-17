@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = {
+  metadataBase: new URL("http://localhost:3000"),
   title: "Beersheba Sr Sec School Haldwani - Academic Excellence",
   description:
     "Beersheba Sr Sec School in Haldwani offers top-notch education, modern facilities, and a focus on holistic development. Enroll now for a brighter future!",

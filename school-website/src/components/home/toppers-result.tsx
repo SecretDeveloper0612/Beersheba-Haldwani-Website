@@ -11,54 +11,53 @@ import { client_query_function } from "@/lib/graphql";
 import { poppins } from "@/utils/font";
 import { set } from "date-fns";
 
-const ToppersResult = () => {
-  const [topper, setTopper] = useState<TopperType>();
-  const [otherTopper, setOtherTopper] = useState<TopperType>();
-  const [classXTopperHeading, setClassXTopperHeading] = useState<string>("");
-  const [classXTopperDesc, setClassXTopperDesc] = useState<string>("");
-  const [classXiiTopperHeading, setClassXiiTopperHeading] =
-    useState<string>("");
-  const [classXiiTopperDesc, setClassXiiTopperDesc] = useState<string>("");
+const ToppersResult = ({ initialData }: { initialData?: any }) => {
+  const allToppers = initialData?.allToppers || [];
+  const class10 = allToppers.find((t: any) => t.class === "10" || t.class === 10);
+  const class12 = allToppers.find((t: any) => t.class === "12" || t.class === 12);
 
-  const query = `
-  query MyQuery {
-    haldwaniHomes {
-      toppers {
-        class
-        id
-        topperDetails {
-          id
-          name
-          percentage
-          subject
-          topperImage {
-            url
-          }
-        }
-      }
-    classXTopperHeading
-    classXTopperDesc
-    classXiiTopperHeading
-    classXiiTopperDesc
-    }
-  }
-  `;
+  const [topper, setTopper] = useState<any>(class10 || allToppers[0]);
+  const [otherTopper, setOtherTopper] = useState<any>(class12 || allToppers[1]);
+  const [classXTopperHeading, setClassXTopperHeading] = useState<string>(
+    initialData?.classXHeading || "Academic Pioneers"
+  );
+  const [classXTopperDesc, setClassXTopperDesc] = useState<string>(
+    initialData?.classXDesc || "Celebrating our Class X stars."
+  );
+  const [classXiiTopperHeading, setClassXiiTopperHeading] = useState<string>(
+    initialData?.classXiiHeading || "Future Leaders"
+  );
+  const [classXiiTopperDesc, setClassXiiTopperDesc] = useState<string>(
+    initialData?.classXiiDesc || "Recognizing Class XII excellence."
+  );
 
   useEffect(() => {
-    async function toppers() {
-      const response = (await client_query_function(query)) as HomeType;
-      if (!response?.haldwaniHomes?.[0]) return;
-      
-      const homeData = response.haldwaniHomes[0];
-      setTopper(homeData.toppers?.[0]);
-      setOtherTopper(homeData.toppers?.[1]);
-      setClassXTopperHeading(homeData.classXTopperHeading);
-      setClassXTopperDesc(homeData.classXTopperDesc);
-      setClassXiiTopperHeading(homeData.classXiiTopperHeading);
-      setClassXiiTopperDesc(homeData.classXiiTopperDesc);
+    if (initialData) {
+      const allToppers = initialData.allToppers || [];
+      const class10 = allToppers.find(
+        (t: any) => t.class === "10" || t.class === 10
+      );
+      const class12 = allToppers.find(
+        (t: any) => t.class === "12" || t.class === 12
+      );
+
+      setTopper(class10 || allToppers[0]);
+      setOtherTopper(class12 || allToppers[1]);
+
+      setClassXTopperHeading(
+        initialData.classXHeading || "Academic Pioneers"
+      );
+      setClassXTopperDesc(
+        initialData.classXDesc || "Celebrating our Class X stars."
+      );
+      setClassXiiTopperHeading(
+        initialData.classXiiHeading || "Future Leaders"
+      );
+      setClassXiiTopperDesc(
+        initialData.classXiiDesc || "Recognizing Class XII excellence."
+      );
     }
-    toppers();
-  }, [query]);
+  }, [initialData]);
 
 
   return (
@@ -75,7 +74,7 @@ const ToppersResult = () => {
         <div className="relative max-w-[320px] sm:max-w-lg mx-auto lg:ml-0 order-2 lg:order-1">
           <Carousel opts={{ align: "start", loop: true }} className="w-full">
             <CarouselContent className="-ml-3 pb-4">
-              {topper?.topperDetails?.map((t) => (
+              {topper?.topperDetails?.map((t: any) => (
                 <CarouselItem className="pl-3 basis-full sm:basis-1/2" key={t?.id}>
                   <div className="group relative bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 flex flex-col h-full">
                     <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#3B2565] to-[#4c3282]">
@@ -89,8 +88,8 @@ const ToppersResult = () => {
 
                     <div className="relative aspect-[4/4.5] overflow-hidden">
                       <Image
-                        src={t?.topperImage?.url}
-                        alt={t?.name}
+                        src={t?.topperImage?.url || "/assets/image/aboutImage.jpg"}
+                        alt={t?.name || "Topper"}
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                         unoptimized
@@ -161,7 +160,7 @@ const ToppersResult = () => {
         <div className="relative order-1 lg:order-2 max-w-[320px] sm:max-w-lg mx-auto lg:mr-0">
           <Carousel opts={{ align: "start", loop: true }} className="w-full">
             <CarouselContent className="-ml-3">
-              {otherTopper?.topperDetails?.map((oT) => (
+              {otherTopper?.topperDetails?.map((oT: any) => (
                 <CarouselItem key={oT?.id} className="pl-3 basis-full sm:basis-1/2">
                   <div className="group relative bg-white rounded-2xl overflow-hidden shadow-lg border border-gray-100 flex flex-col">
                     <div className="flex items-center justify-between p-3 bg-gradient-to-r from-[#E74040] to-[#c23535]">
@@ -175,8 +174,8 @@ const ToppersResult = () => {
 
                     <div className="relative aspect-[4/4.5] overflow-hidden">
                       <Image
-                        src={oT?.topperImage?.url}
-                        alt={oT?.name}
+                        src={oT?.topperImage?.url || "/assets/image/aboutImage.jpg"}
+                        alt={oT?.name || "Topper"}
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-105"
                         unoptimized

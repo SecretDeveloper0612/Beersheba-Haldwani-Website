@@ -42,7 +42,7 @@ const Why = () => {
     {
       title: "Sports Facilities",
       desc: "State-of-the-art sports infrastructure promoting physical fitness and team spirit.",
-      icon: "/assets/image/=s.png",
+      icon: "/assets/image/success-svgrepo-com (1) 1.png",
       bgColor: "bg-[#3B2565]",
       textColor: "text-white"
     }

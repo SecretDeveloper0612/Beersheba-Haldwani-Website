@@ -1,6 +1,6 @@
 import Banner from "@/components/banner";
 import Heading3 from "@/components/heading3";
-import { query } from "@/lib/db";
+import { server_query_function } from "@/lib/graphql";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -9,15 +9,24 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const Page = async () => {
-  const newsEvents = (await query(
-    "SELECT * FROM news_events WHERE status = 'published' ORDER BY created_at DESC"
-  )) as any[];
+  const query = `query MyQuery {
+    newsEvents (orderBy: createdAt_DESC, first: 100) {
+      id
+      newsHeading
+      newsImage {
+        url
+      }
+    }
+  }`;
 
-  const mappedNews = newsEvents?.map(item => ({
-    id: item.id,
-    newsHeading: item.title,
-    newsImage: { url: item.featured_image || "/assets/image/placeholder.jpg" }
-  })) || [];
+  let mappedNews: any[] = [];
+  try {
+    const response = (await server_query_function(query)) as any;
+    mappedNews = response?.newsEvents || [];
+
+  } catch (error) {
+    console.error("Error fetching news from Hygraph:", error);
+  }
 
   return (
     <div>
@@ -36,14 +45,14 @@ const Page = async () => {
               No news or events found.
             </div>
           ) : (
-            mappedNews.map((item) => (
+            mappedNews.map((item: any) => (
               <Link href={`/news-event/${item?.id}`} key={item?.id}>
                 <div
                   className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 group"
                 >
                   <div className="relative overflow-hidden h-64">
                     <Image
-                      src={item?.newsImage.url}
+                      src={item?.newsImage?.url || "/assets/image/placeholder.jpg"}
                       alt={item?.newsHeading}
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
